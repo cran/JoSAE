@@ -1,0 +1,320 @@
+%\VignetteIndexEntry{JoSAE: Functions for unit-level small area estimators and their variance}
+\documentclass[english,11pt]{article}
+%\documentclass[a4paper,11pt]{article}
+\usepackage[a4paper]{geometry}
+\geometry{verbose,tmargin=2cm,bmargin=2cm,lmargin=2cm,rmargin=2cm,footskip=1cm}
+
+\usepackage{Sweave}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[authoryear]{natbib}
+\usepackage{url}
+\usepackage[utf8]{inputenc}
+
+% \setlength{\oddsidemargin}{1cm}
+% \setlength{\textwidth}{15cm}
+% \setlength{\topmargin}{-2.2cm}
+% \setlength{\textheight}{22cm}
+
+% \usepackage{amssymb}
+% \usepackage{amsmath}
+
+
+%\usepackage{hyperref}
+\usepackage[linkcolor=blue, bookmarks=true, citecolor=blue, colorlinks=true, linktocpage, a4paper]{hyperref}
+
+
+
+\title{Vignette of the JoSAE package}
+\author{Johannes Breidenbach\thanks{Norwegian Forest and Landscape
+    Institute, 1431 {\AA}s, Norway, job@skogoglandskap.no, Tel.: +47 64 94 89 81}}
+\date{6 October 2011: JoSAE 0.2}
+%\address{Norwegian Institute for Forest and Landscape}
+
+\begin{document}
+\maketitle
+
+%\tableofcontents
+
+
+\section{Introduction}
+The aim in the analysis of sample surveys is frequently to derive
+estimates of subpopulation characteristics. This task is denoted small
+area estimation (SAE) \citep{rao2003}. Often, the sample
+available for the subpopulation is, however, too small to allow a
+reliable estimate. Frequently, auxiliary variables exists that are correlated
+with the variable of interest. Several estimators can make
+use of auxiliary information which may reduce the variance of the
+estimate \citep{rao2003}. Another term for \emph{small area} is
+\emph{domain}. These two terms will be used interchangeable in the following.
+
+
+The \texttt{JoSAE} package implements the \emph{generalized
+regression} (GREG) \citep{sarndal1984} and unit level \emph{empirical best
+linear unbiased prediction} EBLUP \citep{battese1988}
+estimators and their variances. The \emph{synthetic regression} and
+the \emph{simple random sample} (SRS) estimates are also calculated. The
+purpose of the \texttt{JoSAE} package is to document the functions used in
+the publication of \citep{bre2011}. The data used in
+that study are also provided.
+
+
+If \texttt{R} is running, the \texttt{JoSAE} package can be installed
+by typing
+
+<<eval=F, echo=TRUE>>=
+install.packages("JoSAE")
+
+@
+into the console\footnote{The character "\texttt{>}" is not
+  part of the command. A working Internet connection is required.}.
+
+The command
+<<>>=
+library(JoSAE)
+@
+loads the package into the current workspace. We can get an overview of
+the packages' contents by typing
+<<eval=F, echo=T>>=
+?JoSAE
+@
+
+\section{Using the provided functions - small area estimates}
+For our small area estimates, we need
+\begin{itemize}
+   \item sample data which contain the variable of interest and the
+     auxiliary variables of all sampled population elements and
+   \item domain data which contain the mean of the auxiliary variables
+     of all population elements within each domain of interest.
+\end{itemize}
+Both data sets need to have a corresponding domain ID.
+
+
+\subsection{Mean forest biomass within Norwegian municipalities}
+
+To load and plot the data used by \citep{bre2011} we write:
+<<fig=TRUE>>=
+	#mean auxiliary variables for the populations in the domains
+data(JoSAE.domain.data)
+	#data for the sampled elements
+data(JoSAE.sample.data)
+
+#plot(biomass.ha~mean.canopy.ht,JoSAE.sample.data)
+
+library(lattice)
+
+print(xyplot(biomass.ha ~ mean.canopy.ht | domain.ID, data = JoSAE.sample.data))
+@
+
+The data set \texttt{JoSAE.sample.data} contains the above-ground
+forest biomass (the variable of interest) observed on
+sample plots of the Norwegian National Forest Inventory (NNFI) and the mean
+canopy height derived from overlapping digital aerial images (the
+auxiliary variable). The domain ID indicates in which of 14
+municipalities (i.e., our small areas) the sample plot was located.
+
+The data set \texttt{JoSAE.domain.data} contains the mean
+canopy height derived from overlapping digital aerial images within
+the forest of a municipality. All population elements (i.e., not only
+those elements where field data from the NNFI were available) were
+used to derive this mean.
+
+In order to make use of the auxiliary variables, a statistical model
+needs to be fit that links the variable of interest to the auxiliary
+variables. We fit a linear mixed-effects model \citep{pinheiro2011}
+with a random intercept on the municipality level to our data:
+
+<<>>=
+    #lme model
+summary(fit.lme <- lme(biomass.ha ~ mean.canopy.ht, data=JoSAE.sample.data
+                       , random=~1|domain.ID))
+@
+
+In combination with the domain-level data, the functions provided in
+the \texttt{JoSAE} package can now be used to calculate domain level
+EBLUP estimates and their variances. Since the functions expect
+variable names in the domain data and the sample data to be the same,
+we first have to do some renaming:
+
+<<>>=
+    #domain data need to have the same column names as sample data or vice versa
+d.data <- JoSAE.domain.data
+names(d.data)[3] <- "mean.canopy.ht"
+@
+
+Then we can use the \texttt{eblup.mse.f.wrap} function, which does all
+the work. This function is a wrapper function that calls several other
+\texttt{JoSAE} functions. All attributes the function needs are the domain data
+and the fitted model (an lme object).
+
+<<>>=
+result <- eblup.mse.f.wrap(domain.data = d.data, lme.obj = fit.lme)
+
+#names(result)
+@
+
+Besides the EBLUP estimate and its variance, the function calculates
+the GREG and SRS estimate as well as a synthetic regression estimate based on a linear
+model fitted with the fixed-part of the lme formula. Many other
+domain characteristics are calculated by the \texttt{eblup.mse.f.wrap}
+function. The help page lists the details. Let's print some of the
+most interesting results in Tables~\ref{tab:one} and \ref{tab:two}.
+
+<<echo=FALSE,results=tex>>=
+library(xtable)
+#tmp <- result[,c(1:2,6,4,9:11)]
+tmp <- result[,c("domain.ID","N.i.domain","n.i.sample", "biomass.ha.sample.mean", "GREG"
+                 , "EBLUP", "Synth")]
+names(tmp)[4] <- c("sample.mean")
+print(xtable(tmp, label = "tab:one", caption="Number of population and sampled elements as well as simple random sample, synthetic, GREG and EBLUP estimates of the mean above-ground forest biomass within 14 Norwegian municipalities."), include.rownames=FALSE)
+
+tmp <- result[,c("domain.ID","n.i.sample","sample.se", "GREG.se", "EBLUP.se.1", "EBLUP.se.2")]#result[,c(1:2,6,23:26)]
+print(xtable(tmp, label = "tab:two", caption="Number of population and sampled elements as well as standard errors of the simple random sample, GREG and EBLUP estimates of the mean above-ground forest biomass within 14 Norwegian municipalities."), include.rownames=FALSE)
+@
+
+\clearpage
+
+The \texttt{eblup.mse.f.wrap} function does not return a standard error for the
+synthetic regression estimate, since no estimators exist that consider
+its model bias. In Table~\ref{tab:two}, it needs to be noted that variances for the SRS and GREG estimates are
+unstable for small sample sizes within domains (say <6 observations). A variance
+estimate is technically impossible for domains with just one
+observation. The EBLUP variances are frequently smaller than the GREG
+variances and stable even for domains with just one
+observation. However, the EBLUP variance is model-based and thus
+relies on the correctness of the fitted model. \citet{rao2003} suggests two
+different EBLUP variances estimates. Both are returned by the
+\texttt{eblup.mse.f.wrap} function (Table~\ref{tab:two}).
+
+The data can be visualized by:%height=8,
+<<fig=T,width=7,height=6>>=
+
+tmp <- result[,c("biomass.ha.sample.mean", "Synth", "GREG", "EBLUP")]
+    #actual plot
+tmp1 <- barplot(t(as.matrix(tmp)), beside=T
+            , names.arg=result$domain.ID
+            , xlab="Municipalities"
+                , ylab=expression(paste("Estimated biomass (Mg ", ha^{-1}, ")" ))
+                , ylim=c(0,200))
+    #print n.sample plots
+text(tmp1[2,]+.5, y = 50, labels = result$n.i.sample,cex=1.5)
+    #error bars
+tmp2<- result[,c("sample.se", "sample.se", "GREG.se", "EBLUP.se.2")]#sample.se twice to fill the column, only used once.
+tmp2[is.na(tmp2)] <- 0
+        #plot error bars
+            #sample mean
+arrows(x0=tmp1[1,], y0=tmp[,1]+tmp2[,1], x1=tmp1[1,], y1 = tmp[,1]-tmp2[,1]
+           , length = 0.01, angle = 90, code = 3)
+            #GREG
+arrows(x0=tmp1[3,], y0=tmp[,3]+tmp2[,3], x1=tmp1[3,], y1 = tmp[,3]-tmp2[,3]
+           , length = 0.01, angle = 90, code = 3)
+            #EBLUP
+arrows(x0=tmp1[4,], y0=tmp[,4]+tmp2[,4], x1=tmp1[4,], y1 = tmp[,4]-tmp2[,4]
+           , length = 0.01, angle = 90, code = 3)
+    #legend
+legend(13,200, fill=grey(c(.3, .6, .8, .9)), legend=c("SRS", "Synth", "GREG", "EBLUP"), bty="n")
+
+@
+
+
+\subsection{County crop areas in Iowa}
+\citet{battese1988} the EBLUP estimator and demonstrated its
+application using Landsat data to estimate the mean hectares of corn and
+soybeans within counties (small areas) in north-central Iowa. Thanks to
+\citet{schoch2011} the Landsat data are available in R. The functions
+in the \texttt{JoSAE} package should give approximately similar results as
+those presented by \citet{battese1988} and \citet[Table 7.3,p.144]{rao2003}.
+
+Let's get the data, split the data sets into a domain-specific and
+sample specific data frame and add a numeric domain ID to both. We will also exclude an ``outlying''
+domain\footnote{The \texttt{rsae} package was specifically developed for robust
+estimation where outliers do not need to be excluded.} in row 33 as
+was suggested by \citet{battese1988}:
+<<>>=
+library(rsae)
+
+data(landsat)
+
+    #prepare the domain data - exclude "outlying" domain
+landsat.domains <- unique(landsat[-33,c(1, 7:8,10)])
+        #add a numeric domain ID
+landsat.domains$domain.ID <- 1:nrow(landsat.domains)
+        #change names to the names in the sample data
+names(landsat.domains)[2:3] <- c("PixelsCorn", "PixelsSoybeans")
+
+    #prepare the unit-level sample data
+tmp <- landsat[-33,c(2:6, 10)]
+        #add numeric domain ID
+landsat.sample <- merge(landsat.domains[4:5], tmp, by="CountyName")
+
+@
+
+
+Now we can fit a linear mixed-effects model and obtain our small area
+estimates:
+<<>>=
+summary(landsat.lme <- lme(HACorn ~ PixelsCorn + PixelsSoybeans
+                           , data=landsat.sample
+                           , random=~1|domain.ID))
+    #obtain EBLUP estimates and MSE
+result <- eblup.mse.f.wrap(domain.data = landsat.domains
+             , lme.obj = landsat.lme)
+
+@
+
+<<echo=FALSE,results=tex>>=
+
+tmp <- result[,c("CountyName.domain","n.i.sample","EBLUP", "EBLUP.se.1", "EBLUP.se.2", "GREG.se")]
+#tmp <- result[,c(5,9,13,28,29,27)]
+names(tmp)[1:2] <- c("County.name","n_i")#, "EBLUP.mean", "EBLUP.se.1", "EBLUP.se.2", "GREG.se")
+#names(tmp) <- c("County.name","n_i", "EBLUP.mean", "EBLUP.se.1", "EBLUP.se.2", "GREG.se")
+print(xtable(tmp, label = "tab:landsat"
+             , caption="EBLUP estimates of county means of hectares under corn and estimated standard errors of the EBLUP and GREG estimates.")
+      , include.rownames=FALSE)
+
+
+@
+
+Comparing Table~\ref{tab:landsat} with the reference
+\citep{battese1988, rao2003} suggests that the results
+are quite similar but not exactly the same. The EBLUP estimates for the
+county means are slightly different because \citet{battese1988} adjusted the
+estimates to sum up to the approximately unbiased Survey-Regression
+estimate for the total area. The standard errors are slightly different since \citet{battese1988}
+used the method of \emph{fitting of constants} to estimate the model
+parameters but REML was used here. Finally, \citet{battese1988} obtained standard
+errors also for Survey-Regression estimates within domains with
+just one observation. Unfortunately, no details were
+elaborated. Given that the Survey-Regression estimator
+should be the same as the GREG \citep[p. 20]{rao2003}, it is unclear to me how this
+was done (any hints would be appreciated).
+
+All in all, it looks like
+the functions in the \texttt{JoSAE} package are correctly implemented.
+
+\section{Acknowledgments}
+I would like to thank Tobias Schoch, the author of the \texttt{rsae}
+package \citep{schoch2011} for the provision of
+the Landsat data set.
+
+\begin{thebibliography}{---}
+\bibitem[Battese et al.(1988)]{battese1988} Battese, G.E., R.M. Harter, and W.A. Fuller (1988): \emph{An Error-Components Model for Prediction of County Crop Areas Using Survey and Satellite Data}, Journal of the American Statistical Association 83, pp. 28-36.
+%
+\bibitem[Breidenbach and Astrup (2011)]{bre2011} Breidenbach, J. and
+  R. Astrup (2011): \emph{Small area estimation of forest attributes
+    in the Norwegian National Forest Inventory}. European Journal of
+  Forest Research, under review.
+%
+\bibitem[Pinheiro et al.(2011)]{pinheiro2011} Pinheiro, J., D. Bates, S. DebRoy, D. Sarkar and the R Development Core Team (2011): \emph{nlme: Linear and Nonlinear Mixed Effects Models}. R package version 3.1-101.
+%
+\bibitem[Rao(2003)]{rao2003} Rao, J.N.K. (2003): \emph{Small Area Estimation}, New Work: John Wiley and Sons.
+%
+\bibitem[S{\"a}rndal (1984)]{sarndal1984} S{\"a}rndal, C. (1984): \emph{Design-consistent versus model-dependent estimation for small domains}. Journal of the American Statistical Association, JSTOR, 624-631
+%
+\bibitem[Schoch (2011)]{schoch2011} Schoch, T. (2011): \emph{rsae: Robust Small Area Estimation}, R package version 0.1-3.
+\end{thebibliography}
+
+
+\end{document}
+

@@ -22,16 +22,9 @@
     \item{\code{mean.canopy.ht}}{a numeric vector of the auxiliary variable}
   }
 }
-\details{
-%%  ~~ If necessary, more details than the __description__ above ~~
-}
 \source{
   %%  ~~ reference to a publication or URL from which the data were
   %%  obtained ~~
-  Breidenbach, J. and Astrup, R. (2011)
-}
-\references{
-  %%  ~~ possibly secondary sources and usages ~~
   Breidenbach, J. and Astrup, R. (2011)
 }
 \seealso{

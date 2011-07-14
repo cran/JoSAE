@@ -7,21 +7,22 @@
   variances (mean squared errors).
 }
 \description{
-  This package currently implements the GREG and unit level EBLUP
+  This package currently implements the unit level EBLUP (Battese et
+  al. 1988) and GREG (Sarndal 1984)
   estimators as well as their variance estimators. It also contains data
-  and extensive examples that explain its use. 
+  and a vignette that explain its use. 
 }
 \details{
 \tabular{ll}{
 Package: \tab JoSAE\cr
 Type: \tab Package\cr
-Version: \tab 0.1\cr
+Version: \tab 0.2\cr
 Date: \tab 2011-07-14\cr
 License: \tab GPL-2\cr
 LazyLoad: \tab yes\cr
 }
 
-The aim in the analysis of survey samples is frequently to derive
+The aim in the analysis of sample surveys is frequently to derive
 estimates of subpopulation characteristics. Often, the sample available
 for the subpopulation is, however, too small to allow a reliable
 estimate. If an auxiliary variable exists that is correlated with the
@@ -51,7 +52,15 @@ first part of my name.
   that are not keen on programming. Especially the EBLUP variance
   estimator would require some effort.
 
-  There are several points where this package could be improved:
+  After uploading the first JoSAE
+  version (0.1), I realized there exists another SAE package that specialzes on
+  robust SAE (rsae; Schoch, 2011). It implements reampling variance
+  estimators as opposed to analytical variance estimators implemented
+  here. The \code{\link[rsae]{rsae}} package comes with a very good
+  vignette as well as the Landsat data set 
+  used by Battese et al. (1988).
+
+  There are several points where the JoSAE could be improved:
 
   Only univariate unit-level models with a simple block-diagonal variance structure
   are supported so far.
@@ -64,20 +73,32 @@ first part of my name.
 }
 
 \references{
-  Breidenbach, J. and Astrup, R., (submitted 2011), Small area estimation of
-  forest attributes in the Norwegian national forest inventory based on
-  canopy height models derived from digital aerial images. European
+  Battese, G. E., Harter, R. M. & Fuller, W. A. (1988), An error-components model
+  for prediction of county crop areas using survey and satellite data
+  Journal of the American Statistical Association, 83, 28-36 
+  
+  Breidenbach, J. and Astrup, R. (submitted 2011), Small area estimation of
+  forest attributes in the Norwegian National Forest Inventory. European
   Journal of Forest Research.
 
   Rao, J.N.K. (2003), Small area estimation. Wiley.
 
-  Gomez-Rubio, (2008), Tutorial on small area estimation, UseR
-  conference 2008, August 12-14, Technische Universitat Dortmund, Germany
+  Gomez-Rubio (2008), Tutorial on small area estimation, UseR
+  conference 2008, August 12-14, Technische Universitat Dortmund,
+  Germany.
+
+  Sarndal, C. (1984), Design-consistent versus model-dependent estimation for
+  small domains Journal of the American Statistical Association, JSTOR,
+  624-631 
+
+  Schoch, T. (2011), rsae: Robust Small Area Estimation. R package
+  version 0.1-3. 
+  
 }
 
 \keyword{ package }
 \seealso{
-  \code{\link{eblup.mse.f}}, \code{\link{JoSAE.gamma.i.f}},
+  \code{\link{eblup.mse.f}},
   \code{\link{JoSAE.sample.data}}, \code{\link{JoSAE.domain.data}}
 }
 \examples{
@@ -87,8 +108,23 @@ data(JoSAE.domain.data)
 data(JoSAE.sample.data)
 plot(biomass.ha~mean.canopy.ht,JoSAE.sample.data)
 
+## the easy way: use the wrapper function to compute EBLUP and GREG estimates and variances
 
-##small area estimation
+    #lme model
+summary(fit.lme <- lme(biomass.ha ~ mean.canopy.ht, data=JoSAE.sample.data
+                       , random=~1|domain.ID))
+
+    #domain data need to have the same column names as sample data or vice versa
+d.data <- JoSAE.domain.data
+names(d.data)[3] <- "mean.canopy.ht"
+
+result <- eblup.mse.f.wrap(domain.data = d.data, lme.obj = fit.lme)
+result
+
+##END: the easy way
+
+
+##the hard way: compute the EBLUP MSE components yourself
     #get an overview of the domains
         #mean of the response and predictor variables from the sample. For the response this is the sample mean estimator.
 tmp <- aggregate(JoSAE.sample.data[,c("biomass.ha", "mean.canopy.ht")]
@@ -138,7 +174,7 @@ overview.domains$EBLUP <- predict(fit.lme
                                      , level=1)
 
     #gamma
-overview.domains$gamma.i <- JoSAE.gamma.i.f(lme.obj=fit.lme
+overview.domains$gamma.i <- eblup.mse.f.gamma.i(lme.obj=fit.lme
                                           , n.i=overview.domains$n.i)
 
     #variance of the sample mean estimate
@@ -224,69 +260,6 @@ round(data.frame(overview.domains[,c("domain.ID", "n.i", "N.i")],
 round(data.frame(overview.domains[,c("domain.ID", "n.i", "N.i")],
                  sqrt(overview.domains[,c("sample.var", "GREG.var", "EBLUP.var.1", "EBLUP.var.2")])),2)
 
-##END: small area estimation
-
-
-
-## aggregate the results to the large study area that contains all domains
-
-    #variance of the sample mean for the whole area
-var.all.sampmean <- var(JoSAE.sample.data$biomass.ha)/sum(overview.domains$n.i)
-
-    #variance of the GREG estimate for the whole area
-var.all.greg <- var(resid(fit.lm))/sum(overview.domains$n.i)
-
-    #EBLUP variance for the whole area
-        #gamma
-gamma.all <- JoSAE.gamma.i.f(lme.obj=fit.lme, n.i=sum(overview.domains$n.i))
-
-        #first comp
-mse.c1.tmp <- eblup.mse.f.c1(gamma.i=gamma.all
-                           , n.i=sum(overview.domains$n.i)
-                           , lme.obj=fit.lme)
-
-        #second comp
-mse.c2.tmp <- eblup.mse.f.c2(gamma.i=gamma.all
-                           , X.i=as.matrix(cbind(i=1##cbind!!
-                                   , x=mean(JoSAE.sample.data[#mean does not need to be weighted because unit-level observations
-                                     , "mean.canopy.ht"])##change to other varnames if necessary
-                             ))
-                           , X.bar.i =as.matrix(rbind(i=1##rbind!!
-                                   , x=weighted.mean(JoSAE.domain.data[
-                                     , "mean.canopy.ht.bar"], w=JoSAE.domain.data$N.i)##change to other varnames if necessary
-                             ))
-                           , sum.A.i = sum.A.i.mats
-                           )
-
-        #third comp
-mse.c3.tmp <- eblup.mse.f.c3(n.i=sum(overview.domains$n.i)
-                           , lme.obj=fit.lme
-                           , asympt.var.covar=asy.var.cov.mat)
-
-        #third star comp
-mse.c3.star.tmp <- eblup.mse.f.c3.star( n.i=sum(overview.domains$n.i)
-                                     , lme.obj=fit.lme
-                                     , mean.resid.i=weighted.mean(overview.domains$mean.resid.lme, w=overview.domains$n.i)
-                                     , asympt.var.covar=asy.var.cov.mat)
-
-        #combine to final variance
-var.all.eblup <- mse.c1.tmp + mse.c2.tmp + mse.c3.tmp + mse.c3.star.tmp
-
-
-
-    #combine the 3 estimators:
-    #EBLUP estimate is almost the same as sample mean -> design consitency
-    #GREG sampling error (SE) is slightly smaller than EBLUP SE. Both are considerably smaller
-    #than the sample mean SE.
-tmp <- data.frame(
-      cbind(sample.mean=weighted.mean(overview.domains$biomass.ha.bar.sample, w=overview.domains$N.i)
-            , GREG.mean=weighted.mean(overview.domains$GREG, w=overview.domains$N.i)
-            , EBLUP.mean=weighted.mean(overview.domains$EBLUP, w=overview.domains$N.i))
-      ,
-      sqrt(cbind(SE.sample=var.all.sampmean, SE.GREG=var.all.greg, SE.EBLUP=var.all.eblup[,1]))
-      )
-
-tmp
-##END: aggregate the results to the large study area that contains all domains
+##END: the hard way
 
 }

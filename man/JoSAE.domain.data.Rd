@@ -21,17 +21,10 @@
 	  auxiliary variable}
   }
 }
-\details{
-%%  ~~ If necessary, more details than the __description__ above ~~
-}
 \source{
 %%  ~~ reference to a publication or URL from which the data were
 %%  obtained ~~
 Breidenbach and Astrup (2011)
-}
-\references{
-  %%  ~~ possibly secondary sources and usages ~~
-  Breidenbach and Astrup (2011)
 }
 \seealso{
   %% ~~objects to See Also as \code{\link{help}}, ~~~

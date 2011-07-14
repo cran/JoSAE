@@ -1,4 +1,4 @@
-JoSAE.gamma.i.f.default <-
+eblup.mse.f.gamma.i <-
 function(lme.obj, n.i,...){
         #extract variance components: first for random, second for residual
     varcomp <- as.numeric(VarCorr(lme.obj)[,1])
