@@ -1,5 +1,4 @@
-\name{eblup.mse.f}
-\alias{eblup.mse.f}
+\name{eblup.mse.f.wrap}
 \alias{eblup.mse.f.wrap}
 \alias{eblup.mse.f.gamma.i}
 \alias{eblup.mse.f.c1}
@@ -22,7 +21,6 @@
   and SRS estimates.
 }
 \usage{
-eblup.mse.f(...)
 eblup.mse.f.wrap(domain.data, lme.obj, debug=F, ...)
 eblup.mse.f.gamma.i(lme.obj, n.i, ...)
 eblup.mse.f.c1(lme.obj, n.i, gamma.i, ...)
@@ -107,14 +105,16 @@ variances (.se).
 }
 \references{
   %% ~put references to the literature/web site here ~
-  Breidenbach and Astrup (2011)
+  Breidenbach and Astrup (2012), Small area estimation of
+  forest attributes in the Norwegian National Forest Inventory. European
+  Journal of Forest Research, 131:1255-1267.
 }
 \author{
 Johannes Breidenbach
 }
 \note{
   %%  ~~further notes~~
-  Currently, only single level mixed-effects model with homogeneous
+  Currently, only random intercept mixed-effects models with homogeneous
   variance structure are supported.
 }
 %% ~Make other sections like Warning with \section{Warning }{....} ~

@@ -25,7 +25,9 @@
 \source{
   %%  ~~ reference to a publication or URL from which the data were
   %%  obtained ~~
-  Breidenbach, J. and Astrup, R. (2011)
+  Breidenbach, J. and Astrup, R. (2012), Small area estimation of
+  forest attributes in the Norwegian National Forest Inventory. European
+  Journal of Forest Research, 131:1255-1267.  
 }
 \seealso{
   %% ~~objects to See Also as \code{\link{help}}, ~~~
