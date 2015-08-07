@@ -4,20 +4,7 @@ exportPattern("^[^\\.]")
     #requires nlme
 import(nlme)
 
-    #S3 methods of the eblup.mse.f function
-#S3method(default, eblup.mse.f)
-## S3method(gamma.i, eblup.mse.f)
-## S3method(c1, eblup.mse.f)
-## S3method(c2.ai, eblup.mse.f)
-## S3method(c2, eblup.mse.f)
-## S3method(c3.asyvarcovarmat, eblup.mse.f)
-## S3method(c3, eblup.mse.f)
-## S3method(c3.star, eblup.mse.f)
+    #solve NOTE in check results
+importFrom("stats", "aggregate", "formula", "lm", "model.matrix",
+           "predict", "resid", "terms", "var")
 
-## S3method(eblup.mse.f, gamma.i)
-## S3method(eblup.mse.f, c1)
-## S3method(eblup.mse.f, c2.ai)
-## S3method(eblup.mse.f, c2)
-## S3method(eblup.mse.f, c3.asyvarcovarmat)
-## S3method(eblup.mse.f, c3)
-## S3method(eblup.mse.f, c3.star)

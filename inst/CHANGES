@@ -10,3 +10,9 @@ Spelling and formatting errors in the vignette were corrected.
 Citation was updated
 
 Dependence on the package rsae was removed since rsae was archived. The Landsat data set which was included in rsae is now included in the JoSAE package.
+
+
+v0.2.3
+New section on regression-synthetic estimators and a new data set to document a new publication was added.
+
+Maintainer's email address changed. 

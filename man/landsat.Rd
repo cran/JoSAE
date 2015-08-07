@@ -1,14 +1,10 @@
-\name{landsat}
-\alias{landsat}
-\docType{data}
-\title{
-LANDSAT data: Prediction of County Crop Areas Using Survey and Satellite Data
-}
-\description{
-The \code{landsat} data.frame is a compilation (by Battese et al., 1988)
-of survey and satellite data. It consists of data on segments (primary
-sampling unit; 1 segement =approx= 250 hectares) under corn and soybeans
-for 12 counties in north-central Iowa; see Details, below.
+\name{landsat} \alias{landsat} \docType{data} \title{ LANDSAT data:
+Prediction of County Crop Areas Using Survey and Satellite Data }
+\description{ The \code{landsat} data.frame is a compilation (by Battese
+et al., 1988) of survey and satellite data. It consists of data on
+segments (primary sampling unit; 1 segement =approx= 250 hectares) under
+corn and soybeans for 12 counties in north-central Iowa; see Details,
+below.
 
 The landsat data.frame was made available by Tobias Schoch with the R
 package rsae. Since rsae was archived as of R 3.0.2, the data and this
@@ -19,8 +15,8 @@ description was copied from rsae 0.1-4 in the archives.
   A data frame with 37 observations on the following 10 variables.
   \describe{
     \item{\code{SegmentsInCounty}}{
-a numeric vector; no. of segments per county
-}
+	  a numeric vector; no. of segments per county
+	}
     \item{\code{SegementID}}{
 a numeric vector; sample segment identifier (per county)
 }

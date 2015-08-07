@@ -34,6 +34,7 @@
 %\address{Norwegian Institute for Forest and Landscape}
 
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 \maketitle
 
 %\tableofcontents
@@ -295,6 +296,85 @@ was done (any hints would be appreciated).
 All in all, it looks like
 the functions in the \texttt{JoSAE} package are correctly implemented.
 
+
+
+\section{Synthetic estimation}
+
+This section documents the estimators in \cite{bre2015}. R-code is given rather than implemented functions since the implementation is rather straight forward. The validation data are not given here except for one stand for which the variance estimation is explained.
+
+It should again be noted that the synthetic estimators should be avoided, if observations are available within the small areas. This is because regression models can be biased for specific small areas. 
+
+Load NFI data, fit the linking model, and create data for one validation stand. Elev.Mean is the vegetation height, N and E are northing and easting.
+<<>>=
+data(nfi)
+    #fit the model
+fit.nfi.iw <- lm(vol.2011~Elev.Mean, nfi, weights=1/Elev.Mean)
+  #data (model matrix, X) of one validation stand
+stand <- cbind(Intercept=1, Elev.Mean=c(147.41,127.48,98.66,118.85,124,120.81,119.7),
+               N=c(0,23,0,55,27,80,56), E=c(73,77,0,39,37,54,54) )
+  #aggregate to obtain X-bar
+stand.agg <- apply(stand[,1:2], 2, mean)
+@
+
+As indicated by one reviewer: If just variance estimator (3) is of interest, also a White estimator could be used.
+For all other estimators, a model for the residual variance is needed.
+
+Synthetic variance estimators consider the uncertainty in the model. The uncertainty in the model parameters is 
+the covariance matrix and will be called Sigma. The residual variance will be called sig. Due to the assumed heteroskedasticity, 
+it needs to be multiplied with $x_i$ to be meaningful.
+<<>>=
+    #obtain covariance matrix 
+Sigma <- vcov(fit.nfi.iw)
+
+    #residual variance
+sig <- summary(fit.nfi.iw)$sigma
+@
+
+Variance estimator (3) is based on the concept of the estimation of superpopulation parameters and can be obtained as follows for the example stand.
+
+<<>>=
+var.p <- t(stand.agg) %*% Sigma %*% stand.agg
+@
+
+
+Variance estimator (5) does not make much sense for heteroskedastic models and is therefore not shown here. Variance estimator (6) can be implemented as:
+
+<<>>=
+var.prh <- var.p + sum(sig^2 * stand[,2])/nrow(stand)^2
+@
+
+For variance estimator (7), we need some model that describes the spatial autocorrelation of grid cells within a stand. In the paper, we use one global model. This may not be the best solution, as it is likely that the structure of the autocorrelation is different from stand to stand. This is, however, out of the scope of the paper. A spatial range of 23 m was estimated for the spatial model based on the validation data. This process is not shown here. First we create the spatial object:
+
+<<>>=
+library(nlme)
+spG <- corGaus(23, form = ~N+E)
+@
+
+
+Then we create the correlation matrix given the distance between the observations and the autocorrelation structure. Furthermore, we create the matrix of expected variances.
+
+<<>>=
+cormat <- corMatrix(Initialize(spG, data.frame(stand)))
+
+varmat <- (sig * sqrt(stand[,2])) %o% (sig * sqrt(stand[,2]))
+@
+
+This finally results in estimator (7):
+
+<<>>=
+var.prhs <- var.p + sum(cormat * varmat)/nrow(stand)^2
+@
+
+
+The square root of the variances (ignoring bias) results in the standard error (SE). The SE of the different estimators increases from (5)-(7) because more error components are considered.
+
+<<>>=
+sqrt(c(var.p, var.prh, var.prhs))
+@
+
+The larger the number of population elements (i.e., grid cells or pixels) is, the smaller will be the difference between the estimators. Again, beware of bias in synthetic estimates!
+
+
 \section{Acknowledgments}
 I would like to thank Tobias Schoch, the author of the \texttt{rsae}
 package \citep{schoch2011} for the provision of
@@ -307,6 +387,12 @@ the Landsat data set.
   R. Astrup (2012): \emph{Small area estimation of forest attributes
     in the Norwegian National Forest Inventory}. European Journal of
   Forest Research, 131:1255-1267.
+  %
+\bibitem[Breidenbach, et al.(2015)]{bre2015} Breidenbach, J. McRoberts, R. E.,
+  R. Astrup (2015): \emph{Empirical
+  coverage of model-based variance estimators for 
+  remote sensing assisted estimation of stand-level timber volume.}  Remote
+  Sensing of Environment. In press.
 %
 \bibitem[Pinheiro et al.(2011)]{pinheiro2011} Pinheiro, J., D. Bates, S. DebRoy, D. Sarkar and the R Development Core Team (2011): \emph{nlme: Linear and Nonlinear Mixed Effects Models}. R package version 3.1-101.
 %

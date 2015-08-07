@@ -22,11 +22,12 @@ variable of interest, small area estimation (SAE) provides methods to
 solve the problem (Rao 2003). 
 
 The purpose of this package is primarily to document the
-functions used in the publication of Breidenbach and Astrup (2012). The
-data used in that study are also provided.
+functions used in the publications Breidenbach and Astrup (2012). The
+data used in that study are also provided. The vignette further
+documents the publication Breidenbach et al. (2015).
 
 You might wonder why this package is called JoSAE. Well, first of all,
-JoSAE sounds good (if pronounced like Josie). The other reason was that the packages SAE
+JoSAE sounds good (if pronounced like the female name). The other reason was that the packages SAE
 and SAE2 already exist (Gomez-Rubio, 2008). They are, however, not
 available on CRAN and unmaintained (as of July 2011). They also do not seem to implement
 the variance estimators that we needed. So I just combined SAE with the
@@ -36,7 +37,7 @@ first part of my name.
 \author{
   Johannes Breidenbach
   
-  Maintainer: Johannes Breidenbach <job@skogoglandskap.no>
+  Maintainer: Johannes Breidenbach <job@nibio.no>
 }
 \note{
   All the implemented functions/estimators are described in Rao (2003). This
@@ -44,15 +45,10 @@ first part of my name.
   that are not keen on programming. Especially the EBLUP variance
   estimator would require some effort.
 
-  After uploading the first JoSAE
-  version (0.1), I realized there exists another SAE package that specialzes on
-  robust SAE (rsae; Schoch, 2011). It implements reampling variance
-  estimators as opposed to analytical variance estimators implemented
-  here. The \code{rsae} package included a very good
-  vignette as well as the Landsat data set 
-  used by Battese et al. (1988). Unfortunately, \code{rsae} was archived
-  as of R 3.0.2. the landsat data are therefore included in this
-  package.
+  Today, there are several well programmed SAE packages available on
+  CRAN that also provide the functions described here. This was not the
+  case when the first version of the package was uploaded. This package
+  is therefore mostly to document the publications mentioned above.
 
   There are several points where the JoSAE package could be improved:
 
@@ -62,8 +58,7 @@ first part of my name.
   The computation is based on loops on the domain level. It would be
   more elegant to use blocked matrices.
 
-  ... many more things that will hopefully improve once I have more
-  experience with programming R-packages ...
+  ... many more things ...
 }
 
 \references{
@@ -74,6 +69,11 @@ first part of my name.
   Breidenbach, J. and Astrup, R. (2012), Small area estimation of
   forest attributes in the Norwegian National Forest Inventory. European
   Journal of Forest Research, 131:1255-1267.
+
+  Breidenbach, J., Ronald E. McRoberts, Astrup, R. (2015), Empirical
+  coverage of model-based variance estimators for 
+  remote sensing assisted estimation of stand-level timber volume. Remote
+  Sensing of Environment. In press. 
 
   Gomez-Rubio (2008), Tutorial on small area estimation, UseR
   conference 2008, August 12-14, Technische Universitat Dortmund,
