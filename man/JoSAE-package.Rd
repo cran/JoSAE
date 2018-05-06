@@ -4,14 +4,15 @@
 \docType{package}
 \title{
   Provides functions for some small area estimators and their
-  variances (mean squared errors).
+  mean squared errors.
 }
-\description{
-  This package currently implements the unit level EBLUP (Battese et
-  al. 1988) and GREG (Sarndal 1984)
-  estimators as well as their variance estimators. It also contains data
-  and a vignette that explain its use. 
-}
+
+\description{ This package implements unit-level (Battese et al. 1988)
+  and area-level EBLUP (Fay and Herriot 1979), and GREG (Sarndal 1984)
+  estimators as well as their variance/MSE estimators. It also contains
+  data and a vignette that explain its use. Heteroscedasticity can
+  be considered. }
+
 \details{
 
 The aim in the analysis of sample surveys is frequently to derive
@@ -19,19 +20,21 @@ estimates of subpopulation characteristics. Often, the sample available
 for the subpopulation is, however, too small to allow a reliable
 estimate. If an auxiliary variable exists that is correlated with the
 variable of interest, small area estimation (SAE) provides methods to
-solve the problem (Rao 2003). 
+solve the problem (Rao 2003, Rao and Molina 2015). 
 
-The purpose of this package is primarily to document the
-functions used in the publications Breidenbach and Astrup (2012). The
-data used in that study are also provided. The vignette further
-documents the publication Breidenbach et al. (2015).
+The purpose of this package is primarily to document the functions used
+in the publications Breidenbach and Astrup (2012) and Breidenbach et
+al. (2018). The data used in Breidenbach and Astrup (2012) are provided.
+A subset of the data used in Breidenbach et al. (2018) is also provided
+for testing the functions. The vignette further documents the
+publication Breidenbach et al. (2015).
 
 You might wonder why this package is called JoSAE. Well, first of all,
-JoSAE sounds good (if pronounced like the female name). The other reason was that the packages SAE
-and SAE2 already exist (Gomez-Rubio, 2008). They are, however, not
-available on CRAN and unmaintained (as of July 2011). They also do not seem to implement
-the variance estimators that we needed. So I just combined SAE with the
-first part of my name.
+JoSAE sounds good (if pronounced like the female name). The other reason
+was that the packages SAE and SAE2 already exist (Gomez-Rubio,
+2008). They are, however, not available on CRAN and unmaintained (as of
+July 2011). They also do not seem to implement the variance estimators
+that we needed. So I just combined SAE with the first part of my name.
 
 }
 \author{
@@ -39,6 +42,7 @@ first part of my name.
   
   Maintainer: Johannes Breidenbach <job@nibio.no>
 }
+
 \note{
   All the implemented functions/estimators are described in Rao (2003). This
   package merely makes the use of the estimators easier for the users
@@ -48,17 +52,11 @@ first part of my name.
   Today, there are several well programmed SAE packages available on
   CRAN that also provide the functions described here. This was not the
   case when the first version of the package was uploaded. This package
-  is therefore mostly to document the publications mentioned above.
+  is therefore mostly to document the publications mentioned above. With
+  respect to heteroskedasticity, this package also implements functions
+  that, as far as I can see, are not available in other packages (as of
+  May 2018).
 
-  There are several points where the JoSAE package could be improved:
-
-  Only univariate unit-level models with a simple block-diagonal variance structure
-  are supported so far.
-
-  The computation is based on loops on the domain level. It would be
-  more elegant to use blocked matrices.
-
-  ... many more things ...
 }
 
 \references{
@@ -70,16 +68,28 @@ first part of my name.
   forest attributes in the Norwegian National Forest Inventory. European
   Journal of Forest Research, 131:1255-1267.
 
-  Breidenbach, J., Ronald E. McRoberts, Astrup, R. (2015), Empirical
+  Breidenbach, J., Ronald E. McRoberts, Astrup, R. (2016), Empirical
   coverage of model-based variance estimators for 
   remote sensing assisted estimation of stand-level timber volume. Remote
-  Sensing of Environment. In press. 
+  Sensing of Environment, 173,
+  274-281. https://doi.org/10.1016/j.rse.2015.07.026
+
+  Breidenbach, J., Rahlf, J., Magnussen, S., Astrup, R. (2018)
+  Unit-level and area-level small area estimation under
+  heteroscedasticity using digital aerial photogrammetry data. Remote
+  Sensing of Environment. In press.
+
+  Fay, R. E., Herriot, R. A., 1979. Estimates of income for small places: an
+  application of James- Stein procedures to census data. Journal of the
+  American Statistical Association 74 (366a), 269-277.
 
   Gomez-Rubio (2008), Tutorial on small area estimation, UseR
   conference 2008, August 12-14, Technische Universitat Dortmund,
   Germany.
   
   Rao, J.N.K. (2003), Small area estimation. Wiley.
+
+  Rao, J. N., Molina, I., (2015). Small area estimation, 2nd Edition. John Wiley & Sons. 
 
   Sarndal, C. (1984), Design-consistent versus model-dependent estimation for
   small domains Journal of the American Statistical Association, JSTOR,
@@ -93,7 +103,8 @@ first part of my name.
 \keyword{ package }
 \seealso{
   \code{\link{eblup.mse.f.wrap}},
-  \code{\link{JoSAE.sample.data}}, \code{\link{JoSAE.domain.data}}
+  \code{\link{JoSAE.sample.data}}, \code{\link{JoSAE.domain.data}}, 
+  \code{\link{sae.al.f}}, \code{\link{sae.ul.f}}
 }
 \examples{
 	#mean auxiliary variables for the populations in the domains
@@ -102,7 +113,7 @@ data(JoSAE.domain.data)
 data(JoSAE.sample.data)
 plot(biomass.ha~mean.canopy.ht,JoSAE.sample.data)
 
-## the easy way: use the wrapper function to compute EBLUP and GREG estimates and variances
+## use the original wrapper function
 
     #lme model
 summary(fit.lme <- lme(biomass.ha ~ mean.canopy.ht, data=JoSAE.sample.data
@@ -115,152 +126,21 @@ names(d.data)[3] <- "mean.canopy.ht"
 result <- eblup.mse.f.wrap(domain.data = d.data, lme.obj = fit.lme)
 result
 
-##END: the easy way
+##END: use the original wrapper function
 
 
-##the hard way: compute the EBLUP MSE components yourself
-    #get an overview of the domains
-        #mean of the response and predictor variables from the sample.
-        #For the response this is the sample mean estimator.
-tmp <- aggregate(JoSAE.sample.data[,c("biomass.ha", "mean.canopy.ht")]
-                            , by=list(domain.ID=JoSAE.sample.data$domain.ID), mean)
-names(tmp)[2:3] <- paste(names(tmp)[2:3], ".bar.sample", sep="")
+## the same with a newer function that can consider heteroskedasticity
+res <-
+    sae.ul.f(samp.data=JoSAE.sample.data,
+             population.data=d.data,
+				#assuming homoskedasticity
+             k.ij=rep(1, nrow(JoSAE.sample.data)),
+             formula=biomass.ha ~ mean.canopy.ht,
+             domain.col="domain.ID",
+             sample.id.col="sample.ID",
+             neg.sfrac=TRUE)
+res$est$est
 
-        #number of samples within the domains
-tmp1 <- aggregate(cbind(n.i=JoSAE.sample.data$biomass.ha)
-                  , by=list(domain.ID=JoSAE.sample.data$domain.ID), length)
-
-        #combine it with the population information of the domains
-overview.domains <- cbind(JoSAE.domain.data, tmp[,-1], n.i=tmp1[,-1])
-
-
-    #fit the models
-        #lm - the auxiliary variable explains forest biomass rather good
-summary(fit.lm <- lm(biomass.ha ~ mean.canopy.ht, data=JoSAE.sample.data))
-
-        #lme
-summary(fit.lme <- lme(biomass.ha ~ mean.canopy.ht, data=JoSAE.sample.data
-                       , random=~1|domain.ID))
-
-    #mean lm residual -- needed for GREG
-overview.domains$mean.resid.lm <- aggregate(resid(fit.lm)
-                                            , by=list(domain.ID=JoSAE.sample.data$domain.ID)
-                                            , mean)[,2]
-
-    #mean lme residual -- needed for EBLUP.var
-overview.domains$mean.resid.lme <- aggregate(resid(fit.lme, level=0)
-                                             , by=list(domain.ID=JoSAE.sample.data$domain.ID)
-                                             , mean)[,2]
-
-    #synthetic estimate
-overview.domains$synth <- predict(fit.lm
-            , newdata= data.frame(mean.canopy.ht=JoSAE.domain.data$mean.canopy.ht.bar))
-
-
-
-    #GREG estimate
-overview.domains$GREG <- overview.domains$synth +  overview.domains$mean.resid.lm
-
-    #EBLUP estimate
-overview.domains$EBLUP <- predict(fit.lme
-                   , newdata=data.frame(mean.canopy.ht=JoSAE.domain.data$mean.canopy.ht.bar
-                   , domain.ID=JoSAE.domain.data$domain.ID)
-                   , level=1)
-
-    #gamma
-overview.domains$gamma.i <- eblup.mse.f.gamma.i(lme.obj=fit.lme
-                                          , n.i=overview.domains$n.i)
-
-    #variance of the sample mean estimate
-overview.domains$sample.var <-
-    aggregate(JoSAE.sample.data$biomass.ha
-          , by=list(domain.ID=JoSAE.sample.data$domain.ID), var)[,-1]/overview.domains$n.i
-
-    #variance of the GREG estimate
-overview.domains$GREG.var <-
-    aggregate(resid(fit.lm)
-          , by=list(domain.ID=JoSAE.sample.data$domain.ID),var)[,-1]/overview.domains$n.i
-
-    #variance of the EBLUP
-        #compute the A.i matrices for all domains (only needed once)
-domain.ID <- JoSAE.domain.data$domain.ID
-            #initialize the result vector
-a.i.mats <- vector(mode="list", length=length(domain.ID))
-for(i in 1:length(domain.ID)){
-    print(i)
-    a.i.mats[[i]] <- eblup.mse.f.c2.ai(gamma.i=overview.domains$gamma.i[
-		                 overview.domains$domain.ID==domain.ID[i]]
-       , n.i=overview.domains$n.i[overview.domains$domain.ID==domain.ID[i]]
-       , lme.obj=fit.lme
-       , X.i=as.matrix(cbind(i=1
-       , x=JoSAE.sample.data[JoSAE.sample.data$domain.ID==domain.ID[i], "mean.canopy.ht"]
-                                   ))
-         )
-}
-                #add all the matrices
-sum.A.i.mats <- Reduce("+", a.i.mats)
-
-        #the assymptotic var-cov matrix
-asy.var.cov.mat <- eblup.mse.f.c3.asyvarcovarmat(n.i=overview.domains$n.i
-                                           , lme.obj=fit.lme)
-
-
-        #put together the variance components
-		###### Some changes are required here, if you apply it to own data!
-result <- NULL
-for(i in 1:length(domain.ID)){
-    print(i)
-    #first comp
-    mse.c1.tmp <- eblup.mse.f.c1(gamma.i=overview.domains$gamma.i[
-                      overview.domains$domain.ID==domain.ID[i]]
-       , n.i=overview.domains$n.i[overview.domains$domain.ID==domain.ID[i]]
-       , lme.obj=fit.lme)
-    #second comp
-    mse.c2.tmp <- eblup.mse.f.c2(gamma.i=overview.domains$gamma.i[
-                      overview.domains$domain.ID==domain.ID[i]]
-      , X.i=as.matrix(cbind(i=1##cbind!!
-      , x=JoSAE.sample.data[JoSAE.sample.data$domain.ID==domain.ID[i]
-      , "mean.canopy.ht"]##change to other varnames if necessary
-                             ))
-      , X.bar.i =as.matrix(rbind(i=1##rbind!!
-      , x=JoSAE.domain.data[JoSAE.domain.data$domain.ID==domain.ID[i]
-      , "mean.canopy.ht.bar"]##change to other varnames if necessary
-                             ))
-                           , sum.A.i = sum.A.i.mats
-                           )
-    #third comp
-    mse.c3.tmp <- eblup.mse.f.c3(n.i=overview.domains$n.i[
-                      overview.domains$domain.ID==domain.ID[i]]
-                           , lme.obj=fit.lme
-                           , asympt.var.covar=asy.var.cov.mat)
-    #third star comp
-    mse.c3.star.tmp <- eblup.mse.f.c3.star( n.i=overview.domains$n.i[
-                           overview.domains$domain.ID==domain.ID[i]]
-      , lme.obj=fit.lme
-      , mean.resid.i=overview.domains$mean.resid.lme[
-           overview.domains$domain.ID==domain.ID[i]]
-      , asympt.var.covar=asy.var.cov.mat)
-    #save result
-    result <- rbind(result, data.frame(kommune=domain.ID[i]
-      , n.i=overview.domains$n.i[overview.domains$domain.ID==domain.ID[i]]
-      , c1=as.numeric(mse.c1.tmp), c2=as.numeric(mse.c2.tmp)
-      , c3=as.numeric(mse.c3.tmp), c3star=as.numeric(mse.c3.star.tmp)))
-}
-
-            #derive the actual EBLUP variances
-overview.domains$EBLUP.var.1 <- result$c1 + result$c2 + 2* result$c3star
-overview.domains$EBLUP.var.2 <- result$c1 + result$c2 + result$c3 + result$c3star
-
-
-    #display the estimates and the sampling error (sqrt(var)) in two tables
-round(data.frame(overview.domains[,c("domain.ID", "n.i", "N.i")],
-                 overview.domains[,c("biomass.ha.bar.sample", "GREG", "synth", "EBLUP")]),2)
-        #the sampling errors of the eblup is mostly smaller than the one of the greg estimate.
-        #both are always smaller than the sample mean variance.
-round(data.frame(overview.domains[,c("domain.ID", "n.i", "N.i")],
-                 sqrt(overview.domains[,c("sample.var", "GREG.var",
-                        "EBLUP.var.1", "EBLUP.var.2")])),2)
-
-##END: the hard way
+##END: the same with a newer function that can consider heteroskedasticity
 
 }

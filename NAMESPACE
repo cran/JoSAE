@@ -5,6 +5,5 @@ exportPattern("^[^\\.]")
 import(nlme)
 
     #solve NOTE in check results
-importFrom("stats", "aggregate", "formula", "lm", "model.matrix",
-           "predict", "resid", "terms", "var")
-
+importFrom("stats", "aggregate", "coef", "formula", "lm", "model.frame", "model.matrix",
+           "predict", "resid", "terms", "var", "vcov")
